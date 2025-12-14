@@ -28,6 +28,7 @@
 
   <!-- Main CSS File -->
   <link href="assets/css/main.css" rel="stylesheet">
+  <link href="assets/css/custom.css" rel="stylesheet">
 
   <!-- =======================================================
   * Template Name: SnapFolio
@@ -934,13 +935,13 @@
 
     </section><!-- /Testimonials Section -->
 
-    <!-- Contact Section -->
+       <!-- Contact Section -->
     <section id="contact" class="contact section">
 
       <!-- Section Title -->
       <div class="container section-title" data-aos="fade-up">
-        <h2>Papildoma užd</h2>
-        <p></p>
+        <h2>Contact</h2>
+        <p>Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit</p>
       </div><!-- End Section Title -->
 
       <div class="container">
@@ -948,33 +949,95 @@
         <div class="row g-4 g-lg-5">
           <div class="col-lg-5">
             <div class="info-box">
-              <h3></h3>
-              <p></p>
+              <h3>Contact Info</h3>
+              <p>Praesent sapien massa, convallis a pellentesque nec, egestas non nisi. Vestibulum ante ipsum primis.</p>
 
               <div class="info-item">
-                  <audio controls>
-                  <source src="assets/media/quartz-clock-ticking-one-minute-253102.mp3" type="audio/mpeg">
-                  </audio>
-                <video width="320" height="240" controls>
-                  <source src="assets/media/7534244-hd_1920_1080_25fps.mp4" type="video/mp4">
-                </video>
-
-                <iframe width="320" height="240" src="https://www.youtube.com/embed/BoUVIhtqjAw?si=sIlMLRscud-cxJMc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-
+                <div class="icon-box">
+                  <i class="bi bi-geo-alt"></i>
+                </div>
+                <div class="content">
+                  <h4>Our Location</h4>
+                  <p>A108 Adam Street</p>
+                  <p>New York, NY 535022</p>
                 </div>
               </div>
 
-                <iframe width="320" height="240" src="https://www.youtube.com/embed/BoUVIhtqjAw?si=sIlMLRscud-cxJMc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+              <div class="info-item">
+                <div class="icon-box">
+                  <i class="bi bi-telephone"></i>
+                </div>
+                <div class="content">
+                  <h4>Telefono numeris</h4>
+                  <p>+1 5589 55488 55</p>
+                  <p>+1 6678 254445 41</p>
+                </div>
+              </div>
 
               <div class="info-item">
-                <audio controls>
-                  <source src="assets/media/quartz-clock-ticking-one-minute-253102.mp3" type="audio/ogg">
-                  </audio>
+                <div class="icon-box">
+                  <i class="bi bi-envelope"></i>
+                </div>
+                <div class="content">
+                  <h4>El.pastas</h4>
+                  <p>info@example.com</p>
+                  <p>contact@example.com</p>
+                </div>
               </div>
             </div>
           </div>
+
+          <div class="col-lg-7">
+            <div class="contact-form">
+              <h3>Get In Touch</h3>
+
+<!--              <form action="forms/contact.php" method="post" class="php-email-form">
+                <div class="row gy-4">
+
+                  <div class="col-md-6">
+                    <input type="text" name="name" class="form-control" placeholder="Your Name" required="">
+                  </div>
+
+                  <div class="col-md-6 ">
+                    <input type="email" class="form-control" name="email" placeholder="Your Email" required="">
+                  </div>
+
+                  <div class="col-12">
+                    <input type="text" class="form-control" name="subject" placeholder="Subject" required="">
+                  </div>
+
+                  <div class="col-12">
+                    <textarea class="form-control" name="message" rows="6" placeholder="Message" required=""></textarea>
+                  </div>
+
+                  <div class="col-12 text-center">
+                    <div class="loading">Loading</div>
+                    <div class="error-message"></div>
+                    <div class="sent-message">Your message has been sent. Thank you!</div>
+
+                    <button type="submit" class="btn">Send Message</button>
+                  </div>
+
                 </div>
               </form>
+            -->
+              <form name="myForm">
+              <div>
+                <input type="text" id="fname" name="vardas" class="form-control" placeholder="Vardas">
+                <input type="text" id="lname" name="pavarde" class="form-control" placeholder="Pavarde">
+                <input type="text" id="mail" name="pastas" class="form-control" placeholder="El.pastas">
+                <input type="text" id="phone" name="telefonas" class="form-control" placeholder="Telefono num.">
+                <input type="text" id="adress" name="adresas" class="form-control" placeholder="Adresas">
+                <input type="text" id="kl1" name="kl1" class="form-control" placeholder="Kaip ivertintumet mano nuotraukas?(1-10)">
+                <input type="text" id="kl2" name="kl2" class="form-control" placeholder="Kaip ivertintumet svetaines dizaina?(1-10)">
+                <input type="text" id="kl3" name="kl3" class="form-control" placeholder="Kaip ivertintumet save?(1-10)">              
+              </div>
+              <div>
+                <button type="button" id='submit' name="'submit" class="form-control" onclick="JSForm()"> Submit </button>
+              </div>
+
+              </form>
+
 
             </div>
           </div>
@@ -984,8 +1047,15 @@
       </div>
 
     </section><!-- /Contact Section -->
-
   </main>
+  <section class="container">
+    <body>
+      <div class="container section-title" data-aos="fade-up">
+        <h1>12LD</h1>
+          <a href="file:///C:/Users/lukas/Documents/_Programavimas/ND/index.html">Mano zaidimas</a>
+      </div>
+    </body>
+  </section>
 
   <footer id="footer" class="footer position-relative">
 
@@ -1024,6 +1094,7 @@
 
   <!-- Main JS File -->
   <script src="assets/js/main.js"></script>
+  <script src="assets/js/custom.js"></script>
 
 </body>
 
