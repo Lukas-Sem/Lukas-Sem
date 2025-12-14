@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="lt">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mano Žaidimas</title>
+<style>
+:root{ --card-size:100px; --gap:12px; font-family:Inter, system-ui; }
+body{ margin:20px; background:#f5f7fb; color:#111; }
+header{ display:flex; align-items:center; justify-content:space-between; }
+main{ display:flex; gap:24px; margin-top:18px; }
+
+.board{ display:grid; gap:var(--gap); justify-content:center; }
+
+
+.card{ width:var(--card-size); height:var(--card-size); perspective:900px; cursor:pointer; }
+.card-inner{ width:100%; height:100%; position:relative; transform-style:preserve-3d; transition:transform .5s ease; }
+.card.flipped .card-inner{ transform: rotateY(180deg); }
+
+.card-face{ position:absolute; inset:0; display:flex; justify-content:center; align-items:center;
+            backface-visibility:hidden; border-radius:10px; font-size:36px; }
+
+.card-face.back{ background:#1f2937; color:white; }
+.card-face.front{ background:white; color:#111; border:2px solid #e6eefc; transform: rotateY(180deg); }
+
+.card.inactive{ opacity:0.45; cursor:default; }
+
+.stats{ background:#fff; padding:16px; border-radius:12px; width:240px; box-shadow:0 6px 18px rgba(16,24,40,.06); }
+.stat-row{ display:flex; justify-content:space-between; margin-bottom:8px; font-weight:600; }
+.message{ margin-top:12px; padding:12px; border-radius:10px; text-align:center; font-weight:700; display:none; }
+.message.show{ display:block; background:#bbf7d0; color:#064e3b; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Mano Žaidimas</h1>
+  <div>
+    <label><input type="radio" name="level" value="easy" checked> Lengvas</label>
+    <label><input type="radio" name="level" value="hard"> Sunkus</label>
+    <button id="startBtn">Start</button>
+    <button id="resetBtn">Atnaujinti</button>
+  </div>
+</header>
+
+<main>
+  <div class="left">
+    <div id="board" class="board"></div>
+    <div id="winMessage" class="message">Laimėjote! 🎉</div>
+  </div>
+
+  <aside class="stats">
+    <div class="stat-row"><span>Ėjimai:</span><span id="moves">0</span></div>
+    <div class="stat-row"><span>Laikmatis:</span><span id="timer">0s</span></div>
+    <div class="stat-row"><span>Poros:</span><span id="matches">0</span></div>
+    <hr>
+    <div class="stat-row"><span>Geriausias (Lengvas):</span><span id="bestEasy">-</span></div>
+    <div class="stat-row"><span>Geriausias (Sunkus):</span><span id="bestHard">-</span></div>
+  </aside>
+</main>
+
+<script>
+const CARD_SET=['🍎','🚀','🐶','🌟','🎵','⚽','🍩','🌵','🦋','🎲','📚','🎈'];
+let difficulty='easy', cols=4, rows=3;
+let deck=[], firstCard=null, secondCard=null, lockBoard=false;
+let moves=0, matches=0, totalPairs=0;
+let timer=0, timerInterval=null;
+
+const boardEl=document.getElementById('board');
+const movesEl=document.getElementById('moves');
+const matchesEl=document.getElementById('matches');
+const timerEl=document.getElementById('timer');
+const winMessage=document.getElementById('winMessage');
+const bestEasyEl=document.getElementById('bestEasy');
+const bestHardEl=document.getElementById('bestHard');
+
+function loadBest(){ bestEasyEl.textContent=localStorage.getItem('bestEasy')||'-'; bestHardEl.textContent=localStorage.getItem('bestHard')||'-'; }
+loadBest();
+
+document.querySelectorAll("input[name='level']").forEach(r=>{
+  r.addEventListener('change',e=>{
+    difficulty=e.target.value;
+    if(difficulty==='easy'){cols=4;rows=3;} else {cols=6;rows=4;}
+    resetGame();
+  });
+});
+
+function startTimer(){ timer=0; timerEl.textContent='0s'; clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{timer++; timerEl.textContent=timer+'s';},1000);
+}
+function stopTimer(){ clearInterval(timerInterval); }
+
+function buildDeck(){
+  const needed=(cols*rows)/2; totalPairs=needed;
+  let chosen=[];
+  for(let i=0;i<needed;i++) chosen.push(CARD_SET[i % CARD_SET.length]);
+  let arr=[];
+  chosen.forEach((v,i)=>{arr.push({id:i+'a',value:v}); arr.push({id:i+'b',value:v});});
+  deck=shuffle(arr);
+}
+function shuffle(a){ let b=a.slice(); for(let i=b.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1)); [b[i],b[j]]=[b[j],b[i]];} return b; }
+
+function renderBoard(){
+  boardEl.innerHTML='';
+  boardEl.style.gridTemplateColumns=`repeat(${cols}, var(--card-size))`;
+
+  deck.forEach((obj)=>{
+    const card=document.createElement('div');
+    card.className='card';
+    card.dataset.value=obj.value;
+
+    const inner=document.createElement('div');
+    inner.className='card-inner';
+
+    const back=document.createElement('div'); back.className='card-face back'; back.textContent='❓';
+    const front=document.createElement('div'); front.className='card-face front'; front.textContent=obj.value;
+
+    inner.appendChild(back); inner.appendChild(front);
+    card.appendChild(inner);
+
+    card.addEventListener('click',()=>onCardClick(card));
+    boardEl.appendChild(card);
+  });
+}
+
+function onCardClick(card){
+  if(lockBoard || card.classList.contains('flipped')) return;
+
+  card.classList.add('flipped');
+  if(!firstCard){ firstCard=card; return; }
+
+  secondCard=card;
+  lockBoard=true;
+  moves++; updateStats();
+
+  if(firstCard.dataset.value===secondCard.dataset.value){
+    matches++; updateStats();
+    firstCard.classList.add('inactive');
+    secondCard.classList.add('inactive');
+    resetTurn();
+    if(matches===totalPairs) onWin();
+  } else {
+    setTimeout(()=>{
+      firstCard.classList.remove('flipped');
+      secondCard.classList.remove('flipped');
+      resetTurn();
+    },900);
+  }
+}
+
+function resetTurn(){ firstCard=null; secondCard=null; lockBoard=false; }
+
+function updateStats(){ movesEl.textContent=moves; matchesEl.textContent=matches+'/'+totalPairs; }
+
+function onWin(){ winMessage.classList.add('show'); stopTimer(); saveBest(); }
+
+function saveBest(){
+  if(difficulty==='easy'){
+    const b=localStorage.getItem('bestEasy'); if(!b || moves<b) localStorage.setItem('bestEasy',moves);
+  } else {
+    const b=localStorage.getItem('bestHard'); if(!b || moves<b) localStorage.setItem('bestHard',moves);
+  }
+  loadBest();
+}
+
+function startGame(){ moves=0; matches=0; updateStats(); winMessage.classList.remove('show'); buildDeck(); renderBoard(); startTimer(); }
+function resetGame(){ stopTimer(); timerEl.textContent='0s'; moves=0; matches=0; updateStats(); winMessage.classList.remove('show'); buildDeck(); renderBoard(); }
+
+document.getElementById('startBtn').addEventListener('click',startGame);
+document.getElementById('resetBtn').addEventListener('click',resetGame);
+</script>
+</body>
+</html>

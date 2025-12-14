@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="lt">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Išmanus apvalus laikrodis</title>
+<style>
+  :root{
+    --bg:#0f1724;
+    --card:#0b1220;
+    --accent: linear-gradient(135deg,#6ee7b7 0%, #3b82f6 100%);
+    --glass: rgba(255,255,255,0.04);
+    --muted: #a6b0c3;
+  }
+  html,body{
+    height:100%;
+    margin:0;
+    font-family: Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    background: radial-gradient(1200px 600px at 10% 10%, #071028 0%, transparent 20%),
+                radial-gradient(900px 400px at 90% 90%, #071016 0%, transparent 20%),
+                var(--bg);
+    color: #e6eef8;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .wrap{
+    width:360px;
+    max-width:92vw;
+    display:flex;
+    gap:18px;
+    flex-direction:column;
+    align-items:center;
+  }
+
+  .card{
+    width: 360px;
+    height: 360px;
+    border-radius:999px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    box-shadow: 0 10px 30px rgba(2,6,23,0.6), inset 0 -6px 18px rgba(255,255,255,0.02);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    overflow:hidden;
+  }
+
+  /* Inner ring */
+  .ring{
+    width: 300px;
+    height: 300px;
+    border-radius:999px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    transition: transform .6s cubic-bezier(.2,.9,.2,1), opacity .4s;
+  }
+
+  .mode{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    padding:18px;
+    box-sizing:border-box;
+    transition: opacity .5s, transform .6s;
+  }
+  .mode.hidden{
+    opacity:0;
+    transform: scale(.92);
+    pointer-events:none;
+  }
+
+  .clock-face{
+    width: 250px;
+    height: 250px;
+    border-radius:999px;
+    background: radial-gradient(circle at 30% 30%, rgba(59,130,246,0.06), rgba(59,130,246,0.015)),
+                conic-gradient(from 180deg at 50% 50%, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    box-shadow: 0 8px 18px rgba(3,7,25,0.5), inset 0 -6px 14px rgba(255,255,255,0.02);
+  }
+
+  .tick{
+    position:absolute;
+    width:4px;
+    height:14px;
+    background: rgba(255,255,255,0.85);
+    top:14px;
+    left:calc(50% - 2px);
+    transform-origin: 50% calc(250px/2 - 14px);
+    opacity:.9;
+  }
+
+  .hand{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform-origin: 50% 95%;
+    transform: translate(-50%,-100%) rotate(0deg);
+    transition: transform .2s linear;
+  }
+  .hand.hour{ width:8px; height:70px; border-radius:6px; background:linear-gradient(180deg,#ffffff,#cfe9ff); opacity:.95; }
+  .hand.min{ width:6px; height:95px; border-radius:6px; background:linear-gradient(180deg,#ffffff,#9fd2ff); opacity:.95; }
+  .hand.sec{ width:3px; height:110px; border-radius:6px; background:linear-gradient(180deg,#ff9d9d,#ffd1d1); opacity:.95; }
+
+  .pivot{
+    position:absolute;
+    width:14px; height:14px; border-radius:999px;
+    background: linear-gradient(180deg,#fff,#c9dfff);
+    box-shadow: 0 2px 6px rgba(0,0,0,.6);
+    z-index:5;
+  }
+
+  .digital{
+    margin-top:10px;
+    font-weight:700;
+    font-size:20px;
+    letter-spacing:1px;
+    color:#eaf6ff;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+  }
+  .label{
+    position:absolute;
+    bottom:16px;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:12px;
+    color:var(--muted);
+  }
+
+  /* THERMOMETER */
+  .thermo{
+    width:230px;
+    height:230px;
+    border-radius:999px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:8px;
+    padding:18px;
+    box-sizing:border-box;
+    text-align:center;
+  }
+  .thermo .temp{
+    font-size:56px;
+    font-weight:800;
+    letter-spacing: -1px;
+  }
+  .thermo .unit{ font-size:18px; color:var(--muted); margin-left:6px; font-weight:700; }
+  .thermo .desc{ color:var(--muted); font-size:14px; margin-top:6px; }
+
+  .mercury{
+    width: 16px;
+    height:140px;
+    background: linear-gradient(180deg,#ff7b7b,#ff2d55);
+    border-radius:8px;
+    box-shadow: inset 0 -10px 24px rgba(0,0,0,0.2);
+    position:relative;
+    overflow:hidden;
+  }
+  .mercury .level{
+    position:absolute;
+    left:0; right:0; bottom:0;
+    background: linear-gradient(180deg,#ff5a5a,#ff0d35);
+    transition: height .8s cubic-bezier(.2,.9,.2,1);
+  }
+
+  /* WEATHER */
+  .weather{
+    width:260px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    align-items:center;
+  }
+  .forecast{
+    width: 100%;
+    display:flex;
+    gap:8px;
+    justify-content:space-between;
+  }
+  .day{
+    background: rgba(255,255,255,0.02);
+    border-radius:12px;
+    padding:10px;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    min-width:0;
+  }
+  .day .d{ font-weight:700; font-size:13px; }
+  .icon{ font-size:28px; }
+  .temp-range{ font-size:13px; color:var(--muted); }
+
+  .hint{
+    font-size:13px;
+    color:var(--muted);
+    text-align:center;
+  }
+
+  @media (max-width:420px){
+    .card{ width: 320px; height:320px; }
+    .ring{ width:270px; height:270px; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" role="region" aria-label="Išmanus apvalus laikrodis">
+      <div class="ring" id="ring">
+        <div class="mode" id="mode-clock">
+          <div class="clock-face" aria-hidden="false" id="clockFace">
+
+            <div class="hand hour" id="hourHand"></div>
+            <div class="hand min" id="minHand"></div>
+            <div class="hand sec" id="secHand"></div>
+            <div class="pivot"></div>
+          </div>
+          <div class="digital" id="digital">00:00:00</div>
+          <div class="label"></div>
+        </div>
+
+
+        <div class="mode hidden" id="mode-thermo" aria-hidden="true">
+          <div class="thermo" role="img" aria-label="Kambario termometras">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="display:flex;flex-direction:column;align-items:center;">
+                <div class="mercury" aria-hidden="true">
+                  <div class="level" id="mercuryLevel" style="height:60%"></div>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-start;">
+                <div style="display:flex;align-items:center;">
+                  <div class="temp" id="thermoTemp">22<span class="unit">°C</span></div>
+                </div>
+                <div class="desc" id="thermoDesc">Šilta, jauku kambaryje</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mode hidden" id="mode-weather" aria-hidden="true">
+          <div class="weather" role="img" aria-label="Oro prognozė">
+            <div style="font-weight:700;font-size:18px">Oro prognozė</div>
+            <div class="forecast" id="forecast">
+              <div class="day">
+                <div class="d">Šiandien</div>
+                <div class="icon">☀️</div>
+                <div class="temp-range">15° / 7°</div>
+              </div>
+              <div class="day">
+                <div class="d">Rytoj</div>
+                <div class="icon">🌤️</div>
+                <div class="temp-range">17° / 9°</div>
+              </div>
+              <div class="day">
+                <div class="d">Poryt</div>
+                <div class="icon">🌧️</div>
+                <div class="temp-range">13° / 6°</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hint">Interfeisas persijungia kas 30 s. Spustelėkite kortelę, kad pristabdytumėte.</div>
+  </div>
+
+<script>
+
+  const modes = ['clock','thermo','weather'];
+  let modeIndex = 0;
+  const SWITCH_INTERVAL_MS = 30_000; 
+  let switchTimer = null;
+  let paused = false;
+
+
+  let startTime = performance.now(); 
+
+  let elapsedSeconds = 0;
+
+  const modeIndicator = document.getElementById('modeIndicator');
+  const modeClock = document.getElementById('mode-clock');
+  const modeThermo = document.getElementById('mode-thermo');
+  const modeWeather = document.getElementById('mode-weather');
+  const digital = document.getElementById('digital');
+
+  const hourHand = document.getElementById('hourHand');
+  const minHand = document.getElementById('minHand');
+  const secHand = document.getElementById('secHand');
+
+  const mercuryLevel = document.getElementById('mercuryLevel');
+  const thermoTemp = document.getElementById('thermoTemp');
+  const thermoDesc = document.getElementById('thermoDesc');
+
+  const ring = document.getElementById('ring');
+
+  (function makeTicks(){
+    const face = document.getElementById('clockFace');
+    for(let i=0;i<12;i++){
+      const t = document.createElement('div');
+      t.className = 'tick';
+      t.style.transform = `rotate(${i*30}deg) translateY(-${(250/2 - 20)}px)`;
+      face.appendChild(t);
+    }
+  })();
+
+  function updateClockVisuals(){
+
+    const now = performance.now();
+    elapsedSeconds = Math.floor((now - startTime) / 1000);
+
+    const seconds = elapsedSeconds % 60;
+    const totalMinutes = Math.floor(elapsedSeconds / 60);
+    const minutes = totalMinutes % 60;
+    const hours = Math.floor(totalMinutes / 60); 
+
+    const hh = String(hours).padStart(2,'0');
+    const mm = String(minutes).padStart(2,'0');
+    const ss = String(seconds).padStart(2,'0');
+    digital.textContent = `${hh}:${mm}:${ss}`;
+
+    const analogHours = hours % 12;
+    const hourAngle = (analogHours + minutes/60 + seconds/3600) * 30; 
+    const minAngle = (minutes + seconds/60) * 6; 
+    const secAngle = seconds * 6;
+
+    hourHand.style.transform = `translate(-50%,-100%) rotate(${hourAngle}deg)`;
+    minHand.style.transform = `translate(-50%,-100%) rotate(${minAngle}deg)`;
+    secHand.style.transform = `translate(-50%,-100%) rotate(${secAngle}deg)`;
+  }
+
+
+  const clockInterval = setInterval(()=> {
+    if(!paused) updateClockVisuals();
+  }, 1000);
+  updateClockVisuals();
+
+  function showMode(name){
+    modeClock.classList.add('hidden');
+    modeThermo.classList.add('hidden');
+    modeWeather.classList.add('hidden');
+
+    modeClock.setAttribute('aria-hidden','true');
+    modeThermo.setAttribute('aria-hidden','true');
+    modeWeather.setAttribute('aria-hidden','true');
+
+    if(name === 'clock'){
+      modeClock.classList.remove('hidden');
+      modeClock.setAttribute('aria-hidden','false');
+      modeIndicator.textContent = 'Laikrodis';
+    } else if(name === 'thermo'){
+      modeThermo.classList.remove('hidden');
+      modeThermo.setAttribute('aria-hidden','false');
+      modeIndicator.textContent = 'Termometras';
+    } else if(name === 'weather'){
+      modeWeather.classList.remove('hidden');
+      modeWeather.setAttribute('aria-hidden','false');
+      modeIndicator.textContent = 'Oro prognozė';
+    }
+  }
+
+  function nextMode(){
+    modeIndex = (modeIndex + 1) % modes.length;
+    showMode(modes[modeIndex]);
+    if(modes[modeIndex] === 'thermo') refreshThermo();
+    if(modes[modeIndex] === 'weather') refreshWeather();
+  }
+
+  function startSwitchTimer(){
+    if(switchTimer) clearInterval(switchTimer);
+    switchTimer = setInterval(()=> {
+      if(!paused) nextMode();
+    }, SWITCH_INTERVAL_MS);
+  }
+  startSwitchTimer();
+
+  ring.parentElement.addEventListener('click', ()=>{
+    paused = !paused;
+    ring.style.transform = paused ? 'scale(.995) translateY(2px)' : 'scale(1.00) translateY(0)';
+  });
+
+  function refreshThermo(){
+
+    const t = Math.round(16 + Math.random()*10);
+    const desc = t >= 24 ? 'Labai šilta' : (t >= 20 ? 'Šilta, patogu' : 'Gaivoka kambaryje');
+    thermoTemp.innerHTML = `${t}<span class="unit">°C</span>`;
+    thermoDesc.textContent = desc;
+
+    const pct = Math.max(8, Math.min(92, Math.round((t - 10) * 6))); // mapping temp to percent for demo
+    mercuryLevel.style.height = pct + '%';
+  }
+
+  function refreshWeather(){
+
+    const forecast = [
+      {label:'Šiandien', icon: ['☀️','🌤️','⛅️','🌧️'][Math.floor(Math.random()*4)], high: 15 + Math.floor(Math.random()*6), low: 5 + Math.floor(Math.random()*6)},
+      {label:'Rytoj', icon: ['🌤️','⛅️','🌧️','⛈️'][Math.floor(Math.random()*4)], high: 15 + Math.floor(Math.random()*6), low: 5 + Math.floor(Math.random()*6)},
+      {label:'Poryt', icon: ['🌧️','🌧️','🌨️','🌤️'][Math.floor(Math.random()*4)], high: 12 + Math.floor(Math.random()*6), low: 3 + Math.floor(Math.random()*6)},
+    ];
+    const fc = document.getElementById('forecast');
+
+    fc.innerHTML = '';
+    forecast.forEach(f=>{
+      const d = document.createElement('div');
+      d.className = 'day';
+      d.innerHTML = `<div class="d">${f.label}</div>
+                     <div class="icon" aria-hidden="true">${f.icon}</div>
+                     <div class="temp-range">${f.high}° / ${f.low}°</div>`;
+      fc.appendChild(d);
+    });
+  }
+
+  showMode('clock');
+
+  ring.setAttribute('tabindex','0');
+  ring.addEventListener('keydown', (e)=>{
+    if(e.key === ' ' || e.key === 'Enter'){
+      e.preventDefault();
+      paused = !paused;
+      ring.style.transform = paused ? 'scale(.995) translateY(2px)' : 'scale(1.00) translateY(0)';
+      modeIndicator.textContent = paused ? (modes[modeIndex] + ' • pristabdyta') : modes[modeIndex];
+    }
+  });
+
+  document.addEventListener('visibilitychange', ()=>{
+    if(!document.hidden){
+
+      const now = performance.now();
+      startTime = now - elapsedSeconds*1000;
+      updateClockVisuals();
+    }
+  });
+
+
+  ring.addEventListener('contextmenu', (e)=>{
+    e.preventDefault();
+    alert('Praėjo: ' + digital.textContent + ' (nuo paleidimo)');
+  });
+
+  setInterval(()=>{
+    if(!paused && modes[modeIndex] === 'thermo') refreshThermo();
+    if(!paused && modes[modeIndex] === 'weather') refreshWeather();
+  }, 12_000);
+
+</script>
+</body>
+</html>
